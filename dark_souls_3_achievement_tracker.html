@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ダークソウル3 全実績解除インタラクティブ攻略ダッシュボード</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 680px;
+      margin-left: auto;
+      margin-right: auto;
+      height: 320px;
+      max-height: 400px;
+    }
+    @media (min-width: 768px) {
+      .chart-container {
+        height: 360px;
+      }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <header class="bg-stone-900 text-stone-100 border-b-4 border-amber-600 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-amber-500 text-2xl">🔥</span>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-amber-500">
+              DARK SOULS III 全実績解除 戦略ナビゲーター
+            </h1>
+          </div>
+          <p class="text-xs sm:text-sm text-stone-400 mt-1">
+            神攻略Wiki準拠：魔術・呪術・奇跡・ジェスチャー・指輪 全236要素完全コンプリート対応
+          </p>
+        </div>
+
+        <div class="bg-stone-800 border border-stone-700 rounded-lg p-3 flex flex-wrap items-center justify-around gap-3 sm:gap-6 shadow-inner">
+          <div class="text-center">
+            <div class="text-xs text-stone-400">総合コンプ率</div>
+            <div id="total-progress-percent" class="text-xl font-black text-amber-400">0%</div>
+          </div>
+          <div class="w-px h-8 bg-stone-700 hidden sm:block"></div>
+          <div class="text-center">
+            <div class="text-xs text-stone-400">魔術 (34)</div>
+            <div id="sorcery-count" class="text-sm font-bold text-sky-400">0 / 34</div>
+          </div>
+          <div class="text-center">
+            <div class="text-xs text-stone-400">呪術 (27)</div>
+            <div id="pyro-count" class="text-sm font-bold text-orange-400">0 / 27</div>
+          </div>
+          <div class="text-center">
+            <div class="text-xs text-stone-400">奇跡 (35)</div>
+            <div id="miracle-count" class="text-sm font-bold text-yellow-400">0 / 35</div>
+          </div>
+          <div class="text-center">
+            <div class="text-xs text-stone-400">ジェスチャー (33)</div>
+            <div id="gesture-count" class="text-sm font-bold text-emerald-400">0 / 33</div>
+          </div>
+          <div class="text-center">
+            <div class="text-xs text-stone-400">指輪 (107)</div>
+            <div id="ring-count" class="text-sm font-bold text-amber-400">0 / 107</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full bg-stone-800 h-2.5 rounded-full mt-4 overflow-hidden border border-stone-700">
+        <div id="master-progress-bar" class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 h-2.5 transition-all duration-300" style="width: 0%"></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="bg-stone-800 text-stone-300 sticky top-0 z-30 shadow-md border-b border-stone-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex overflow-x-auto space-x-1 sm:space-x-3 py-2 custom-scrollbar">
+        <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors bg-amber-600 text-stone-900 font-bold">
+          🛡️ ビルド＆周回構想
+        </button>
+        <button onclick="switchTab('covenant')" id="tab-btn-covenant" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          ⚔️ 誓約マラソン
+        </button>
+        <button onclick="switchTab('walkthrough')" id="tab-btn-walkthrough" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          📜 周回チャート
+        </button>
+        <button onclick="switchTab('sorceries')" id="tab-btn-sorceries" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          🔮 魔術 (34)
+        </button>
+        <button onclick="switchTab('pyromancies')" id="tab-btn-pyromancies" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          🔥 呪術 (27)
+        </button>
+        <button onclick="switchTab('miracles')" id="tab-btn-miracles" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          ⚡ 奇跡 (35)
+        </button>
+        <button onclick="switchTab('gestures')" id="tab-btn-gestures" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          🙋‍♂️ ジェスチャー (33)
+        </button>
+        <button onclick="switchTab('rings')" id="tab-btn-rings" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          💍 指輪 (107)
+        </button>
+        <button onclick="switchTab('missables')" id="tab-btn-missables" class="tab-btn px-3 py-2 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors hover:bg-stone-700 hover:text-stone-100">
+          ⚠️ 不可逆・競合表
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+
+    <section id="tab-overview" class="tab-content space-y-6">
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg shadow-sm">
+        <h2 class="text-lg font-bold text-amber-900">周回戦略とステータス設計概要</h2>
+        <p class="text-sm text-stone-700 mt-1">
+          本アプリケーションは、ダークソウル3の全5大収集実績「魔術の極致」「呪術の極致」「奇跡の極致」「ジェスチャーマスター」「指輪のコレクター」を最低3周（NG++）で無駄なく完全コンプリートするための戦略ダッシュボードです。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">1周目 (NG)</span>
+            <h3 class="font-bold text-stone-900">基盤構築・全スクロール/点字聖書回収</h3>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            全スクロール（4種）をオーベックに渡し魔術を全回収します。全呪術書（5種）をコルニクスおよびカルラに渡し呪術を回収します。正統点字聖書（カリム、ロスリック）をイリーナに、深み・ロンドールの点字聖書をカルラに渡します。シーリスイベントを完遂し「銀猫の指輪」や「暗月の誓約礼」を獲得後、エンディング「はじまりの火を継ぐ者」を達成します。
+          </p>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">2周目 (NG+)</span>
+            <h3 class="font-bold text-stone-900">+1指輪回収・排他ジェスチャー回収</h3>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            各所に配置される+1指輪（全21種）を全回収します。ロザリアに青ざめた舌を捧げてヘイゼルを召喚し、排他ジェスチャー「丁寧な一礼」を獲得します。1周目で選択しなかったボスソウル錬成アイテム（ハベルの指輪/岩吐き等）を回収し、「火継ぎの終わり」エンディングを達成します。
+          </p>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">3周目 (NG++)</span>
+            <h3 class="font-bold text-stone-900">+2指輪回収＆コンプリート</h3>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            +2指輪（全15種）および無縁墓地にある「生命の指輪+3」を回収します。ロンドールのユリアイベントを完遂して「火の奪還」エンディングを迎え、残った誓約ランク報酬を確認して全トロフィー獲得を完了します。
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-stone-900 mb-2 flex items-center gap-2">
+          <span>🔍</span> 発見力・オフラインマラソン効率計算機
+        </h3>
+        <p class="text-xs text-stone-500 mb-4">
+          誓約アイテムのドロップ率は基本「1.0%〜3.0%」です。発見力を上げることで期待値を大幅に向上させます。
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">運 (Luck) ステータス [10 - 99]: <span id="luck-val" class="text-amber-600">99</span></label>
+              <input type="range" id="luck-input" min="10" max="99" value="99" class="w-full accent-amber-600" oninput="updateCalculator()">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <label class="flex items-center gap-2 text-xs text-stone-700 bg-stone-50 p-2.5 rounded border border-stone-200 cursor-pointer">
+                <input type="checkbox" id="symbol-avarice" checked class="rounded text-amber-600" onchange="updateCalculator()">
+                <span>貪欲者の頭 (発見力 +100)</span>
+              </label>
+
+              <label class="flex items-center gap-2 text-xs text-stone-700 bg-stone-50 p-2.5 rounded border border-stone-200 cursor-pointer">
+                <input type="checkbox" id="rusted-coin" checked class="rounded text-amber-600" onchange="updateCalculator()">
+                <span>錆びついた銅貨 (発見力 +50)</span>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1">貪欲な金の蛇の指輪</label>
+                <select id="gold-serpent" class="w-full text-xs p-2 rounded border border-stone-300 bg-stone-50" onchange="updateCalculator()">
+                  <option value="0">なし (+0)</option>
+                  <option value="50">無印 (+50)</option>
+                  <option value="75">金蛇+1 (+75)</option>
+                  <option value="100" selected>金蛇+2 (+100)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1">結晶古老の刺剣</label>
+                <select id="crystal-rapier" class="w-full text-xs p-2 rounded border border-stone-300 bg-stone-50" onchange="updateCalculator()">
+                  <option value="0">なし (+0)</option>
+                  <option value="50">1本装備 (+50)</option>
+                  <option value="100" selected>二刀流 (+100)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-stone-900 text-stone-100 p-5 rounded-lg flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-stone-400">算出された合計発見力</div>
+              <div id="calc-discovery" class="text-3xl font-black text-amber-400 my-1">449</div>
+              <p class="text-xs text-stone-400">
+                基礎発見力 100 + 運差分 + 装備補正値
+              </p>
+            </div>
+
+            <div class="border-t border-stone-700 pt-3 mt-3 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-stone-300">推定ドロップ率 (約1%基幹):</span>
+                <span id="calc-drop-rate" class="font-bold text-amber-300">4.49%</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-stone-300">約30個必要時の討伐数目安:</span>
+                <span id="calc-kills-needed" class="font-bold text-emerald-400">約 668 体</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-stone-300">想定必要時間 (1周40秒計算):</span>
+                <span id="calc-time-needed" class="font-bold text-sky-300">約 7.4 時間</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-covenant" class="tab-content space-y-6 hidden">
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg shadow-sm">
+        <h2 class="text-lg font-bold text-amber-900">誓約マラソン・必要数・マップ拾得比較</h2>
+        <p class="text-sm text-stone-700 mt-1">
+          全誓約ランク達成に必要な各種誓約アイテムの管理画面です。周回毎の固定配置分を差し引いた、実質的にマラソンで稼ぐべき残数を計算します。
+        </p>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+        <h3 class="text-sm font-bold text-stone-800 mb-3 text-center">誓約アイテム必要数 vs 3周確定拾得数</h3>
+        <div class="chart-container">
+          <canvas id="covenantChart"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-stone-700">
+            <thead class="bg-stone-800 text-stone-200 font-bold uppercase border-b border-stone-700">
+              <tr>
+                <th class="p-3">誓約名</th>
+                <th class="p-3">必要アイテム</th>
+                <th class="p-3">目標</th>
+                <th class="p-3">3周拾得</th>
+                <th class="p-3">現在所持数</th>
+                <th class="p-3">主要ドロップ敵 / おすすめ狩場</th>
+                <th class="p-3">獲得報酬（実績関連）</th>
+              </tr>
+            </thead>
+            <tbody id="covenant-table-body" class="divide-y divide-stone-200 bg-white">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-walkthrough" class="tab-content space-y-6 hidden">
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg shadow-sm">
+        <h2 class="text-lg font-bold text-amber-900">周回別・最適化攻略タスク</h2>
+        <p class="text-sm text-stone-700 mt-1">
+          NPCイベントの破綻を防ぎ、効率的に全収集要素を獲得するための周回別タスクリストです。
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="filterWalkthrough('all')" class="wt-filter-btn active bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全て表示</button>
+        <button onclick="filterWalkthrough('NG')" class="wt-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">1周目 (NG)</button>
+        <button onclick="filterWalkthrough('NG+')" class="wt-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">2周目 (NG+)</button>
+        <button onclick="filterWalkthrough('NG++')" class="wt-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">3周目 (NG++)</button>
+      </div>
+
+      <div id="walkthrough-list-container" class="space-y-4">
+      </div>
+    </section>
+
+    <section id="tab-sorceries" class="tab-content space-y-6 hidden">
+      <div class="bg-sky-50 border-l-4 border-sky-600 p-4 rounded-r-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-sky-900">全34種 魔術データベース（実績：魔術の極致）</h2>
+            <p class="text-sm text-stone-700 mt-1">
+              本編全34種の魔術データです。NPC（オーベック、カルラ）、スクロール（4種）、ボスソウル錬成、誓約報酬の取得場所を完全網羅。
+            </p>
+          </div>
+          <div class="bg-sky-200/70 px-3 py-1.5 rounded-lg border border-sky-300 text-xs font-bold text-sky-900 whitespace-nowrap">
+            修得数: <span id="sorceries-tab-count" class="text-sky-700 font-black text-sm">0 / 34</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="w-full md:w-1/3">
+          <input type="text" id="sorceries-search" placeholder="魔術名や習得先で検索..." class="w-full text-xs p-2.5 rounded border border-stone-300 focus:ring-2 focus:ring-sky-500 outline-none" oninput="renderSorceries()">
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="filterSorceries('all', this)" class="sorc-filter-btn bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全34種</button>
+          <button onclick="filterSorceries('orbeck', this)" class="sorc-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">オーベック/スクロール</button>
+          <button onclick="filterSorceries('transmute', this)" class="sorc-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">ソウル錬成/誓約</button>
+          <button onclick="filterSorceries('unacquired', this)" class="sorc-filter-btn bg-sky-100 text-sky-800 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-sky-200">未習得のみ</button>
+        </div>
+      </div>
+
+      <div id="sorceries-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <section id="tab-pyromancies" class="tab-content space-y-6 hidden">
+      <div class="bg-orange-50 border-l-4 border-orange-600 p-4 rounded-r-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-orange-900">全27種 呪術データベース（実績：呪術の極致）</h2>
+            <p class="text-sm text-stone-700 mt-1">
+              本編全27種の呪術データです。大沼のコルニクス、カルラ、呪術書（5種）、ボスソウル錬成、積む者誓約（ぬくもりの火）を網羅。
+            </p>
+          </div>
+          <div class="bg-orange-200/70 px-3 py-1.5 rounded-lg border border-orange-300 text-xs font-bold text-orange-900 whitespace-nowrap">
+            修得数: <span id="pyro-tab-count" class="text-orange-700 font-black text-sm">0 / 27</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="w-full md:w-1/3">
+          <input type="text" id="pyro-search" placeholder="呪術名や入手条件で検索..." class="w-full text-xs p-2.5 rounded border border-stone-300 focus:ring-2 focus:ring-orange-500 outline-none" oninput="renderPyromancies()">
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="filterPyromancies('all', this)" class="pyro-filter-btn bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全27種</button>
+          <button onclick="filterPyromancies('cornyx', this)" class="pyro-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">コルニクス/呪術書</button>
+          <button onclick="filterPyromancies('karla', this)" class="pyro-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">カルラ/呪術書</button>
+          <button onclick="filterPyromancies('unacquired', this)" class="pyro-filter-btn bg-orange-100 text-orange-800 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-orange-200">未習得のみ</button>
+        </div>
+      </div>
+
+      <div id="pyro-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <section id="tab-miracles" class="tab-content space-y-6 hidden">
+      <div class="bg-yellow-50 border-l-4 border-yellow-600 p-4 rounded-r-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-yellow-900">全35種 奇跡データベース（実績：奇跡の極致）</h2>
+            <p class="text-sm text-stone-700 mt-1">
+              本編全35種の奇跡データです。カリムのイリーナ、カルラ（禁忌の点字聖書）、太陽の戦士・暗月の剣誓約報酬を網羅。
+            </p>
+          </div>
+          <div class="bg-yellow-200/70 px-3 py-1.5 rounded-lg border border-yellow-300 text-xs font-bold text-yellow-900 whitespace-nowrap">
+            修得数: <span id="miracles-tab-count" class="text-yellow-700 font-black text-sm">0 / 35</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="w-full md:w-1/3">
+          <input type="text" id="miracles-search" placeholder="奇跡名や点字聖書名で検索..." class="w-full text-xs p-2.5 rounded border border-stone-300 focus:ring-2 focus:ring-yellow-500 outline-none" oninput="renderMiracles()">
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="filterMiracles('all', this)" class="miracle-filter-btn bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全35種</button>
+          <button onclick="filterMiracles('irina', this)" class="miracle-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">イリーナ/点字聖書</button>
+          <button onclick="filterMiracles('covenant', this)" class="miracle-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">誓約報酬 (暗月/太陽)</button>
+          <button onclick="filterMiracles('unacquired', this)" class="miracle-filter-btn bg-yellow-100 text-yellow-800 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-yellow-200">未習得のみ</button>
+        </div>
+      </div>
+
+      <div id="miracles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <section id="tab-gestures" class="tab-content space-y-6 hidden">
+      <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-emerald-900">全33種 ジェスチャーデータベース（実績：ジェスチャーマスター）</h2>
+            <p class="text-sm text-stone-700 mt-1">
+              全33種のジェスチャー習得場所と獲得条件です。排他イベント（シーリスvsヘイゼル等）の注意点も記載。
+            </p>
+          </div>
+          <div class="bg-emerald-200/70 px-3 py-1.5 rounded-lg border border-emerald-300 text-xs font-bold text-emerald-900 whitespace-nowrap">
+            習得数: <span id="gestures-tab-count" class="text-emerald-700 font-black text-sm">0 / 33</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="w-full md:w-1/3">
+          <input type="text" id="gestures-search" placeholder="ジェスチャー名や関連NPCで検索..." class="w-full text-xs p-2.5 rounded border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none" oninput="renderGestures()">
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="filterGestures('all', this)" class="gesture-filter-btn bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全33種</button>
+          <button onclick="filterGestures('npc', this)" class="gesture-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">NPCイベント</button>
+          <button onclick="filterGestures('missable', this)" class="gesture-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">時限・排他要素</button>
+          <button onclick="filterGestures('unacquired', this)" class="gesture-filter-btn bg-emerald-100 text-emerald-800 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-emerald-200">未習得のみ</button>
+        </div>
+      </div>
+
+      <div id="gestures-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <section id="tab-rings" class="tab-content space-y-6 hidden">
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-amber-900">全107種 指輪完全データベース（神攻略Wiki準拠）</h2>
+            <p class="text-sm text-stone-700 mt-1">
+              トロフィー「指輪のコレクター」獲得に必要な本編全107種の指輪データです。周回区分（NG, NG+, NG++）で絞り込み可能です。
+            </p>
+          </div>
+          <div class="bg-amber-200/60 px-3 py-1.5 rounded-lg border border-amber-300 text-xs font-bold text-amber-900 whitespace-nowrap">
+            所持数: <span id="ring-tab-count" class="text-amber-700 font-black text-sm">0 / 107</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="w-full md:w-1/3">
+          <input type="text" id="ring-search" placeholder="指輪名または入手場所で検索..." class="w-full text-xs p-2.5 rounded border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none" oninput="renderRings()">
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="filterRings('all', this)" class="ring-filter-btn bg-stone-800 text-stone-100 text-xs px-3 py-1.5 rounded-md font-bold">全107種</button>
+          <button onclick="filterRings('NG', this)" class="ring-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">無印 (70種)</button>
+          <button onclick="filterRings('NG+', this)" class="ring-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">+1 (21種)</button>
+          <button onclick="filterRings('NG++', this)" class="ring-filter-btn bg-stone-200 text-stone-700 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-stone-300">+2 / +3 (16種)</button>
+          <button onclick="filterRings('unacquired', this)" class="ring-filter-btn bg-amber-100 text-amber-800 text-xs px-3 py-1.5 rounded-md font-bold hover:bg-amber-200">未所持のみ</button>
+        </div>
+      </div>
+
+      <div id="ring-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <section id="tab-missables" class="tab-content space-y-6 hidden">
+      <div class="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg shadow-sm">
+        <h2 class="text-lg font-bold text-amber-900">取り返しのつかない要素＆ソウル錬成競合表</h2>
+        <p class="text-sm text-stone-700 mt-1">
+          NPC対立・フラグ折れの注意点と、ボスソウルから錬成できるスペル・指輪の排他リストです。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-sm">
+          <h3 class="font-bold text-red-900 text-sm mb-2 flex items-center gap-2">
+            ⚠️ 絶交・フラグ折れ厳禁パターン
+          </h3>
+          <p class="text-xs text-red-800 leading-relaxed">
+            ロザリアに青ざめた舌を捧げるとシーリスと敵対するため、「銀猫の指輪」や「暗月の誓約礼」を獲得するまでは捧げてはなりません。ヘイゼルのジェスチャー「丁寧な一礼」は舌を捧げる必要があるため、シーリスイベント完遂後の2周目で回収することが推奨されます。また、カーサスの地下墓到達前にヨエルのレベルアップを5回行わないとヨエルが死亡し、ユリアの出現が不可能になります。
+          </p>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
+          <h3 class="font-bold text-amber-900 text-sm mb-2 flex items-center gap-2">
+            💡 スクロール・点字聖書引き渡し先ガイド
+          </h3>
+          <p class="text-xs text-amber-800 leading-relaxed">
+            オーベックは渡したスクロールに応じて魔術を販売しますが、ボス4体撃破前にスクロールを1つも渡さないと永久離脱します。カルラには深みの点字聖書とロンドールの点字聖書を渡すことが可能です。これらをイリーナに渡して奇跡を購入すると闇ルートに入り廃人化するため、イリーナにはカリムおよびロスリックの点字聖書のみを渡す必要があります。
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 bg-stone-800 text-stone-100 font-bold text-sm">
+          ボスソウル錬成・実績対象競合マトリクス（最低必要周回数）
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-stone-700">
+            <thead class="bg-stone-100 text-stone-700 font-bold border-b border-stone-200">
+              <tr>
+                <th class="p-3">ボスソウル名</th>
+                <th class="p-3">実績対象 A (スペル/指輪)</th>
+                <th class="p-3">実績対象 B (スペル/指輪)</th>
+                <th class="p-3">非実績用 (武器/盾)</th>
+                <th class="p-3">推奨周回取得順</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-200">
+              <tr>
+                <td class="p-3 font-bold">冷たい谷のボルドのソウル</td>
+                <td class="p-3 text-amber-700 font-semibold">指輪: 法王の左眼</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">ボルドの大槌</td>
+                <td class="p-3 bg-amber-50">1周目: 法王の左眼</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">呪腹の大樹のソウル</td>
+                <td class="p-3 text-amber-700 font-semibold">錬成炉 (機能解放)</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">亡者の狩り手大剣 / アーバレスト</td>
+                <td class="p-3 bg-amber-50">1周目: 錬成炉解放</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">はぐれデーモンのソウル</td>
+                <td class="p-3 text-amber-700 font-semibold">指輪: ハベルの指輪</td>
+                <td class="p-3 text-orange-700 font-semibold">呪術: 岩吐き</td>
+                <td class="p-3">なし</td>
+                <td class="p-3 bg-amber-50">1周目: ハベルの指輪 / 2周目: 岩吐き</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">結晶の古老のソウル</td>
+                <td class="p-3 text-sky-700 font-semibold">魔術: 降り注ぐ結晶</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">結晶古老の刺剣 (マラソン装備)</td>
+                <td class="p-3 bg-amber-50">1周目: 刺剣 / 2周目: 降り注ぐ結晶</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">深みの主教たちのソウル</td>
+                <td class="p-3 text-sky-700 font-semibold">魔術: 深みのソウル</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">聖堂騎士の大盾</td>
+                <td class="p-3 bg-amber-50">1周目: 深みのソウル</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">覇王ウォルニールのソウル</td>
+                <td class="p-3 text-orange-700 font-semibold">呪術: 黒蛇</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">ウォルニールの聖剣</td>
+                <td class="p-3 bg-amber-50">1周目: 黒蛇</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">デーモンの老王のソウル</td>
+                <td class="p-3 text-orange-700 font-semibold">呪術: 苗床の残滓</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">老王の大槌</td>
+                <td class="p-3 bg-amber-50">1周目: 苗床の残滓</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">法王サリヴァーンのソウル</td>
+                <td class="p-3 text-amber-700 font-semibold">指輪: 法王の右眼</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">裁きの大剣 / 罪の大剣</td>
+                <td class="p-3 bg-amber-50">1周目: 法王の右眼</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">神喰らいのエルドリッチのソウル</td>
+                <td class="p-3 text-yellow-700 font-semibold">奇跡: 生命狩りの神術</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">月光の長弓</td>
+                <td class="p-3 bg-amber-50">1周目: 生命狩りの神術</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">冷たい谷の踊り子のソウル</td>
+                <td class="p-3 text-yellow-700 font-semibold">奇跡: 太陽の光の癒し</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">踊り子の双魔剣</td>
+                <td class="p-3 bg-amber-50">1周目: 太陽の光の癒し</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">妖王オスロエスのソウル</td>
+                <td class="p-3 text-sky-700 font-semibold">魔術: 白竜の息</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">月光の大剣</td>
+                <td class="p-3 bg-amber-50">1周目: 白竜の息</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">英雄グンダのソウル</td>
+                <td class="p-3 text-amber-700 font-semibold">指輪: 虜囚の鎖</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">グンダの斧槍</td>
+                <td class="p-3 bg-amber-50">1周目: 虜囚の鎖</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">ロザリアのソウル</td>
+                <td class="p-3 text-yellow-700 font-semibold">奇跡: 太陽の光の恵み</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">なし (ロザリア復活と排他)</td>
+                <td class="p-3 bg-amber-50">1周目: 太陽の光の恵み</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">無名の王のソウル</td>
+                <td class="p-3 text-yellow-700 font-semibold">奇跡: 嵐の落雷</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">竜狩りの剣槍</td>
+                <td class="p-3 bg-amber-50">1周目: 嵐の落雷</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold">王たちのソウル</td>
+                <td class="p-3 text-yellow-700 font-semibold">奇跡: 太陽の光の槍</td>
+                <td class="p-3 text-stone-400">なし</td>
+                <td class="p-3">火継ぎの大剣</td>
+                <td class="p-3 bg-amber-50">1周目: 太陽の光の槍</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-stone-900 text-stone-500 border-t border-stone-800 py-6 mt-12 text-center text-xs">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>DARK SOULS III Complete Achievement Navigator — Designed for 100% Trophy Efficiency</p>
+      <p class="mt-1 text-stone-600">データ参照: 神攻略Wiki (darksouls3) | 進捗はブラウザのLocalStorageに自動保存されます。</p>
+    </div>
+  </footer>
+
+  <script>
+    // --- 1. 魔術 DATA (34 SORCERIES - 神攻略Wiki準拠) ---
+    const SORCERIES_DATA = [
+      { id: 's1', name: 'ソウルの矢', teacher: 'ヴィンハイムのオーベック', req: '初期 / 侍女・オーベック販売 (1000ソウル)', desc: '基本的な攻撃魔術' },
+      { id: 's2', name: '強いソウルの矢', teacher: 'ヴィンハイムのオーベック', req: 'オーベック販売 (3000ソウル)', desc: '威力を高めたソウルの矢' },
+      { id: 's3', name: 'ソウルの太矢', teacher: 'ヴィンハイムのオーベック', req: '初期 / オーベック販売 (2000ソウル)', desc: '威力の高い大きなソウルの矢' },
+      { id: 's4', name: '強いソウルの太矢', teacher: 'ヴィンハイムのオーベック', req: 'オーベック販売 (4500ソウル)', desc: '極めて高い威力を誇るソウルの太矢' },
+      { id: 's5', name: 'ファランの短矢', teacher: 'ヴィンハイムのオーベック', req: '侍女・オーベック販売 (1000ソウル)', desc: '素早く放てる小さなソウルの矢' },
+      { id: 's6', name: '強いファランの短矢', teacher: 'ヴィンハイムのオーベック', req: '古老のスクロール (2000ソウル)', desc: '威力を高めたファランの短矢' },
+      { id: 's7', name: 'ファランの速剣', teacher: 'ヴィンハイムのオーベック', req: 'オーベック販売 (3000ソウル)', desc: 'ソウルの刃を形成し素早く斬りつける' },
+      { id: 's8', name: '追尾するソウルの塊', teacher: 'ヴィンハイムのオーベック', req: 'ローガンのスクロール (6000ソウル)', desc: '術者の周囲に浮かび自動で敵を追尾するソウル' },
+      { id: 's9', name: '追尾するソウルの結晶塊', teacher: 'ヴィンハイムのオーベック', req: '結晶のスクロール (18000ソウル)', desc: '結晶化により威力を極限まで高めた追尾ソウル' },
+      { id: 's10', name: 'ソウルの槍', teacher: 'ヴィンハイムのオーベック', req: 'ローガンのスクロール (5000ソウル)', desc: '敵を貫通する強大なソウルの槍' },
+      { id: 's11', name: 'ソウルの結晶槍', teacher: 'ヴィンハイムのオーベック', req: '結晶のスクロール (15000ソウル)', desc: '貫通力を備えた最高峰の結晶槍' },
+      { id: 's12', name: 'ソウルの大剣', teacher: 'ヴィンハイムのオーベック', req: 'ヨエル / オーベック販売 (5000ソウル)', desc: '巨大なソウルの剣で前方広範囲をなぎ払う' },
+      { id: 's13', name: 'ソウルの奔流', teacher: '大書庫マップ拾得', req: '大書庫 幻の壁奥の遺体', desc: '極大のソウルの奔流を放ち敵を吹き飛ばす' },
+      { id: 's14', name: '降り注ぐ結晶', teacher: 'ソウル錬成', req: '結晶の古老のソウル', desc: '頭上に結晶を生成しソウルの小弾を連続して降らせる' },
+      { id: 's15', name: '白竜の息', teacher: 'ソウル錬成', req: '妖王オスロエスのソウル', desc: '地面を這い進む白竜シースの結晶の息' },
+      { id: 's16', name: '魔力の武器', teacher: 'ヴィンハイムのオーベック', req: '初期 / オーベック販売 (3000ソウル)', desc: '右手武器を魔力属性で強化する' },
+      { id: 's17', name: '強い魔力の武器', teacher: 'ファランの城塞マップ拾得', req: 'ファランの城塞 巨大蟹付近の遺体', desc: '右手武器をより強力な魔力属性で強化する' },
+      { id: 's18', name: '結晶魔力の武器', teacher: 'ヴィンハイムのオーベック', req: '結晶のスクロール (10000ソウル)', desc: '結晶の力で右手武器を最高度に魔力強化する' },
+      { id: 's19', name: '魔力の盾', teacher: 'ヴィンハイムのオーベック', req: 'オーベック販売 (4500ソウル)', desc: '左手盾のカット率と受け能力を向上させる' },
+      { id: 's20', name: '強い魔力の盾', teacher: 'イルシールの地下牢ドロップ', req: '地下牢 蛆人化亡者ドロップ', desc: '左手盾のカット率と受け能力を大幅に引き上げる' },
+      { id: 's21', name: '隠密', teacher: 'ヴィンハイムのオーベック', req: '初期 / オーベック販売 (2000ソウル)', desc: '術者の足音を完全に消し落下ダメージを軽減する' },
+      { id: 's22', name: '照らす光', teacher: 'ヴィンハイムのオーベック', req: '黄金のスクロール (1000ソウル)', desc: '頭上に光を灯し暗闇を照らす' },
+      { id: 's23', name: '見えない体', teacher: 'ヴィンハイムのオーベック', req: '黄金のスクロール (3000ソウル)', desc: '術者の姿を半透明にし敵から感知されにくくする' },
+      { id: 's24', name: '見えない武器', teacher: 'ヴィンハイムのオーベック', req: '黄金のスクロール (1500ソウル)', desc: '右手武器を完全に透明化する' },
+      { id: 's25', name: '修理', teacher: 'ヴィンハイムのオーベック', req: '黄金のスクロール (2000ソウル)', desc: '装備中の武器・防具の耐久度を回復する' },
+      { id: 's26', name: '歪んだ光壁', teacher: 'ヴィンハイムのオーベック', req: '黄金のスクロール (6000ソウル)', desc: '光の壁を展開して魔法や矢の軌道を歪める' },
+      { id: 's27', name: '音送り', teacher: 'ヴィンハイムのオーベック', req: 'オーベック販売 (2000ソウル)', desc: '離れた場所に音を響かせて敵の注意を惹く' },
+      { id: 's28', name: '致死の白霧', teacher: 'ヴィンハイムのオーベック', req: '古老のスクロール (1000ソウル)', desc: '最大HPに応じたダメージを与える危険な白霧' },
+      { id: 's29', name: '深みのソウル', teacher: 'ソウル錬成', req: '深みの主教たちのソウル', desc: '深みの澱みから生じた暗いソウルを放つ' },
+      { id: 's30', name: '強い深みのソウル', teacher: '誓約「神喰らいの守り手」', req: '誓約ランク1報酬 (人間のドロドロ10個)', desc: '大きな暗い深みのソウルを放つ' },
+      { id: 's31', name: '追う者たち', teacher: 'カルラ', req: 'カルラ販売 (15000ソウル)', desc: '人への愛着に似た黒い意思の塊を放つ' },
+      { id: 's32', name: '闇の刃', teacher: 'カルラ', req: 'カルラ販売 (10000ソウル)', desc: '暗いソウルの大刃を振り下ろす' },
+      { id: 's33', name: 'ファランの矢雨', teacher: 'ヴィンハイムのオーベック', req: '古老のスクロール (12000ソウル)', desc: '前方に多数のファランの短矢を一斉に降らせる' },
+      { id: 's34', name: '擬態', teacher: 'アストラのアンリイベント', req: 'ヨルシカ教会巡礼者ドロップまたは遺体', desc: '周囲のオブジェクトに姿を変えて溶け込む' }
+    ];
+
+    // --- 2. 呪術 DATA (27 PYROMANCIES - 神攻略Wiki準拠) ---
+    const PYROMANCIES_DATA = [
+      { id: 'p1', name: '火球', teacher: '大沼のコルニクス', req: '初期 / コルニクス販売 (1000ソウル)', desc: '前方に基本的な火球を投擲する' },
+      { id: 'p2', name: '火の玉', teacher: '大沼のコルニクス', req: 'コルニクス販売 (3000ソウル)', desc: '火球を強化し着弾時に爆発を生じさせる' },
+      { id: 'p3', name: '炸裂火球', teacher: '大沼のコルニクス', req: 'コルニクス販売 (5000ソウル)', desc: '空中で炸裂し広範囲に火の粉を撒き散らす' },
+      { id: 'p4', name: '混沌の火の玉', teacher: '大沼のコルニクス', req: 'イザリスの呪術書 (10000ソウル)', desc: '着弾地点に溶岩の溜まりを残す混沌の大火球' },
+      { id: 'p5', name: '混沌の嵐', teacher: '大沼のコルニクス', req: 'イザリスの呪術書 (12000ソウル)', desc: '周囲の地面から混沌の炎と溶岩の柱を噴出させる' },
+      { id: 'p6', name: '炎の嵐', teacher: 'カルラ', req: 'クラーナの呪術書 (15000ソウル)', desc: '術者の周囲に激しい火柱を乱立させる' },
+      { id: 'p7', name: '大発火', teacher: '大沼のコルニクス', req: 'コルニクス販売 (3000ソウル)', desc: '手元に瞬間的な激しい大炎を発生させる' },
+      { id: 'p8', name: '火炎噴流', teacher: '大沼のコルニクス', req: 'コルニクス販売 (1000ソウル)', desc: 'ボタン入力持続中に手から直線的な炎を放射し続ける' },
+      { id: 'p9', name: '毒の霧', teacher: '大沼のコルニクス', req: '大沼の呪術書 (2000ソウル)', desc: '前方に毒を蓄積させる霧を発生させる' },
+      { id: 'p10', name: '猛毒の霧', teacher: '燻りの湖マップ拾得', req: '燻りの湖 溶岩地帯奥の遺体', desc: '極めて激しい毒を与える猛毒の霧を発生させる' },
+      { id: 'p11', name: '酸の噴射', teacher: '大沼のコルニクス', req: 'カーサスの呪術書 (6000ソウル)', desc: '触れた対象の装備耐久度を破壊する酸の霧' },
+      { id: 'p12', name: '激しい発汗', teacher: '大沼のコルニクス', req: 'コルニクス販売 (1500ソウル)', desc: '発汗により自身の炎属性カット率を大きく引き上げる' },
+      { id: 'p13', name: '激しい脂汗', teacher: '大沼のコルニクス', req: 'コルニクス販売 (2000ソウル)', desc: '出血・毒・冷気・呪死耐性を一時的に高める' },
+      { id: 'p14', name: '鉄の体', teacher: 'ファランの城塞マップ拾得', req: 'ファランの城塞 沼地深部の遺体', desc: '重量と引き換えにカット率と強靭度を劇的に高める' },
+      { id: 'p15', name: '内なる大力', teacher: '大書庫マップ拾得', req: '大書庫 暗い部屋のレバー奥の隠し部屋', desc: 'HPを消費し続ける代わりに攻撃力を劇的に上昇させる' },
+      { id: 'p16', name: '魅了', teacher: 'カルラ', req: 'クラーナの呪術書 (7000ソウル)', desc: '人型の敵の心を奪い一時的に同士討ちをさせる' },
+      { id: 'p17', name: '罪の炎', teacher: '罪の都マップ拾得', req: '罪の都 異形の神官がいる教会の遺体', desc: '目標の足元を遠隔で大爆発させる罪の炎' },
+      { id: 'p18', name: '苗床の残滓', teacher: 'ソウル錬成', req: 'デーモンの老王のソウル', desc: '直線上に高速で飛翔する混沌の極大火球' },
+      { id: 'p19', name: '岩吐き', teacher: 'ソウル錬成', req: 'はぐれデーモンのソウル', desc: '口から硬質な岩の塊を吐き出し敵を打ち砕く' },
+      { id: 'p20', name: '黒炎', teacher: 'カルラ', req: '墓守の呪術書 (10000ソウル)', desc: '手元に高いスタミナ削り性能を持つ漆黒の炎を放つ' },
+      { id: 'p21', name: '黒蛇', teacher: 'ソウル錬成', req: '覇王ウォルニールのソウル', desc: '地表を這うように標的を追尾する漆黒の炎' },
+      { id: 'p22', name: 'ぬくもりの火', teacher: '誓約「積む者」', req: '誓約ランク2報酬 (脊椎の骨30個)', desc: '周囲の者のHPをゆっくりと回復する光の火球' },
+      { id: 'p23', name: '浄火', teacher: '燻りの湖マップ拾得', req: '燻りの湖 溶岩地帯（騎士ゾリグ付近）', desc: '相手の体内に炎を流し込み内側から焼き爆発させる' },
+      { id: 'p24', name: 'カーサスの烽火', teacher: '大沼のコルニクス', req: 'カーサスの呪術書 (8000ソウル)', desc: '攻撃を連続で命中させるほど攻撃力が増加する' },
+      { id: 'p25', name: 'カーサスの弧炎', teacher: '大沼のコルニクス', req: 'カーサスの呪術書 (10000ソウル)', desc: '右手武器に高い炎属性攻撃力を付与する' },
+      { id: 'p26', name: '薙ぎ払う炎', teacher: 'カルラ', req: 'クラーナの呪術書 (10000ソウル)', desc: '手から炎の鞭を繰り出し前方を薙ぎ払う' },
+      { id: 'p27', name: '黒火球', teacher: 'カルラ', req: '墓守の呪術書 (10000ソウル)', desc: '着弾時に相手のガードを崩しやすい黒い火球' }
+    ];
+
+    // --- 3. 奇跡 DATA (35 MIRACLES - 神攻略Wiki準拠) ---
+    const MIRACLES_DATA = [
+      { id: 'm1', name: '回復', teacher: 'カリムのイリーナ', req: '初期 / イリーナ販売 (1000ソウル)', desc: '術者および周囲の味方のHPを回復する' },
+      { id: 'm2', name: '中回復', teacher: 'カリムのイリーナ', req: 'カリムの点字聖書 (3500ソウル)', desc: '回復より高い回復量を持つ中級回復奇跡' },
+      { id: 'm3', name: '大回復', teacher: '冷たい谷のイルシール拾得', req: 'イルシール 水路下の遺体', desc: '術者と周囲のHPを極めて大きく回復する' },
+      { id: 'm4', name: '太陽の光の癒し', teacher: 'ソウル錬成', req: '冷たい谷の踊り子のソウル', desc: '広範囲の味方のHPを最大限に回復する神話の奇跡' },
+      { id: 'm5', name: '生命湧き', teacher: 'カリムのイリーナ', req: 'カリムの点字聖書 (1000ソウル)', desc: '一定時間、術者のHPを徐々に回復し続ける' },
+      { id: 'm6', name: '光の恵み', teacher: 'カリムのイリーナ', req: 'ロスリックの点字聖書 (5000ソウル)', desc: '生命湧きよりも高い回復速度でHPを回復する' },
+      { id: 'm7', name: '太陽の光の恵み', teacher: 'ソウル錬成', req: 'ロザリアのソウル', desc: '広範囲の味方に最高峰のリジェネ効果を付与する' },
+      { id: 'm8', name: '治癒の涙', teacher: 'カリムのイリーナ', req: 'カリムの点字聖書 (1500ソウル)', desc: '出血・毒・冷気の状態異常蓄積を治療する' },
+      { id: 'm9', name: '惜別の涙', teacher: 'カリムのイリーナ', req: 'カリムの点字聖書 (10000ソウル)', desc: 'HPが0になる致命的ダメージを1度だけHP1で耐える' },
+      { id: 'm10', name: '家路', teacher: 'カリムのイリーナ', req: 'イリーナ販売 (3000ソウル)', desc: '最後に休息した篝火、または祭祀場の篝火へ帰還する' },
+      { id: 'm11', name: '助言求め', teacher: '深みの聖堂マップ拾得', req: '深みの聖堂 屋外屋根伝いの遺体', desc: '他のプレイヤーのメッセージを通常より多く可視化する' },
+      { id: 'm12', name: 'フォース', teacher: 'カリムのイリーナ', req: '初期 / イリーナ販売 (1000ソウル)', desc: 'ダメージのない衝撃波を発生させ周囲の敵を弾き飛ばす' },
+      { id: 'm13', name: '放つフォース', teacher: 'ジークバルトイベント', req: 'イルシール 厨房の暖炉前で会話', desc: '前方に直線的に突き進む衝撃波の弾を放つ' },
+      { id: 'm14', name: '神の怒り', teacher: '罪の都マップ拾得', req: '罪の都 神官の上の屋根の遺体', desc: '激しい衝撃波を爆発させ周囲の敵を吹き飛ばす' },
+      { id: 'm15', name: '雷の槍', teacher: 'ファランの城塞マップ拾得', req: 'ファランの城塞 はぐれデーモン手前高台', desc: '前方に投擲する雷の槍を生成する' },
+      { id: 'm16', name: '雷の大槍', teacher: '誓約「太陽の戦士」', req: '誓約ランク2報酬 (太陽のメダル30枚)', desc: '威力を高めた強大な雷の大槍を投擲する' },
+      { id: 'm17', name: '太陽の光の槍', teacher: 'ソウル錬成', req: '王たちのソウル', desc: '最初の火の神話に連なる極大の雷槍' },
+      { id: 'm18', name: '雷の杭', teacher: '燻りの湖ドロップ', req: '燻りの湖 巨大ワーム撃破ドロップ', desc: '雷の巨杭を地面に叩きつけて周囲に放電させる' },
+      { id: 'm19', name: '嵐の落雷', teacher: 'ソウル錬成', req: '無名の王のソウル', desc: '術者の周囲一帯に多数の激しい落雷を呼び寄せる' },
+      { id: 'm20', name: '雷の剣', teacher: 'イルシールの地下牢拾得', req: '地下牢 リフト昇降路途中の足場遺体', desc: '右手武器に強力な雷属性を付与する' },
+      { id: 'm21', name: '暗月の光の剣', teacher: '誓約「暗月の剣」', req: '誓約ランク2報酬 (約定の証30個)', desc: '右手武器に強力な暗月の魔法属性を付与する' },
+      { id: 'm22', name: '武器の祝福', teacher: 'カリムのイリーナ', req: 'ロスリックの点字聖書 (8000ソウル)', desc: '右手武器の物理攻撃力を引き上げ緩やかなHP回復を付与' },
+      { id: 'm23', name: '魔力防護', teacher: 'カリムのイリーナ', req: 'カリムの点字聖書 (5000ソウル)', desc: '術者の魔力属性カット率を高める' },
+      { id: 'm24', name: '大魔力防護', teacher: '古竜の頂マップ拾得', req: '古竜の頂 ハベル戦士付近の崩れた屋根', desc: '術者の魔力属性カット率を劇的に向上させる' },
+      { id: 'm25', name: '固い誓い', teacher: '誓約「太陽の戦士」', req: '誓約ランク1報酬 (太陽のメダル10枚)', desc: '術者と周囲の味方の攻撃力と全カット率を高める' },
+      { id: 'm26', name: '深みの加護', teacher: 'カルラ推奨', req: '深みの点字聖書 (4000ソウル)', desc: '攻撃力・カット率・スタミナ回復・各種耐性を底上げする' },
+      { id: 'm27', name: '黒剣', teacher: 'カルラ推奨', req: 'ロンドールの点字聖書 (10000ソウル)', desc: '右手武器に闇属性の攻撃力を付与する' },
+      { id: 'm28', name: '贖罪', teacher: 'ファランの城塞マップ拾得', req: 'ファランの城塞 毒沼奥の壁際遺体', desc: '自身が敵から格段に狙われやすくなる' },
+      { id: 'm29', name: '死者の活性', teacher: 'カルラ推奨', req: 'ロンドールの点字聖書 (5000ソウル)', desc: '周囲の死骸に呪いを込めて爆破する' },
+      { id: 'm30', name: '蝕み', teacher: 'カルラ推奨', req: '深みの点字聖書 (2000ソウル)', desc: '深みの虫の群れを放ち出血と闇ダメージを与える' },
+      { id: 'm31', name: 'ドリスの蝕み', teacher: '冷たい谷のイルシールドロップ', req: 'イルシール 柵裏の狂った主教ドロップ', desc: '巨大な深みの虫の群れで激しい出血を引き起こす' },
+      { id: 'm32', name: '生命狩りの神術', teacher: 'ソウル錬成', req: '神喰らいのエルドリッチのソウル', desc: '幻影の鎌で敵を切り裂きHPを奪い取る' },
+      { id: 'm33', name: '回復の施し', teacher: '祭祀場の侍女', req: '初期 / 侍女販売 (500ソウル)', desc: '信仰要求の極めて低い簡易的なHP回復' },
+      { id: 'm34', name: '天使の光柱', teacher: '大書庫マップ拾得', req: '大書庫 屋上の鳥籠の中の遺体', desc: '術者の周囲に無数の光の柱を噴出させる' },
+      { id: 'm35', name: '沈黙の禁則', teacher: 'カルラ推奨', req: 'ロンドールの点字聖書 (15000ソウル)', desc: '術者を含む周囲全員の魔法使用を完全に封じる' }
+    ];
+
+    // --- 4. ジェスチャー DATA (33 GESTURES - 神攻略Wiki準拠) ---
+    const GESTURES_DATA = [
+      { id: 'g1', name: '前を指さす', type: '初期', req: '初期所持', desc: '前方を指差して示す' },
+      { id: 'g2', name: '上を指差す', type: '初期', req: '初期所持', desc: '上方を指差して示す' },
+      { id: 'g3', name: '下を指差す', type: '初期', req: '初期所持', desc: '下方を指差して示す' },
+      { id: 'g4', name: '手をふる', type: '初期', req: '初期所持', desc: '親愛を込めて手を振る' },
+      { id: 'g5', name: '手招き', type: 'NPC', req: '火継ぎの祭祀場 ロンドールのヨエル会話', desc: '手を招いて合図する' },
+      { id: 'g6', name: '呼びかけ', type: '探索', req: '祭祀場屋上 ぴゅーぴゅーぽこぽこで交換', desc: '大声を出して呼びかける' },
+      { id: 'g7', name: '歓迎', type: 'NPC', req: '火継ぎの祭祀場 大沼のコルニクス会話', desc: '両手を広げて迎え入れる' },
+      { id: 'g8', name: '賞賛', type: 'NPC', req: '赤い瞳のオーブ入手後 レオナール会話', desc: '拍手して称賛する' },
+      { id: 'g9', name: '静かな意志', type: 'NPC', req: 'イルシール ヨルシカ教会のアンリ会話', desc: '静かに拳を握りしめる' },
+      { id: 'g10', name: '跳ねる歓喜', type: '初期', req: '初期所持', desc: '飛び跳ねて喜びを表現する' },
+      { id: 'g11', name: '歓喜', type: '初期', req: '初期所持', desc: '両手を挙げて喜ぶ' },
+      { id: 'g12', name: '両手歓喜', type: 'NPC', req: '深みの聖堂 ジークバルトイベント進行', desc: '両手を振り上げて歓喜する' },
+      { id: 'g13', name: 'エイエイオー', type: 'NPC', req: '火継ぎの祭祀場 鍛冶屋アンドレイに2回会話', desc: '拳を突き上げて気勢を上げる' },
+      { id: 'g14', name: '太陽賛美', type: '探索', req: 'ロスリック城 太陽の祭壇を調べる', desc: '両手を斜め上へ掲げる伝統のポーズ' },
+      { id: 'g15', name: '感謝を！', type: 'NPC', req: '騎士狩りゾリグに倒されるか撃破する', desc: '胸に手を当てて感謝を示す' },
+      { id: 'g16', name: '一礼', type: '初期', req: '初期所持', desc: '丁寧なお辞儀' },
+      { id: 'g17', name: '丁寧な一礼', type: '時限・排他', req: '城塞で白霊ヘイゼル召喚 (要:青ざめた舌)', desc: '※シーリス敵対！2周目回収を強く推奨' },
+      { id: 'g18', name: '貴人の一礼', type: 'NPC', req: '火継ぎの祭祀場 ロンドールのユリア会話', desc: '上品なお辞儀' },
+      { id: 'g19', name: '開戦礼', type: 'NPC', req: '城塞外縁等で白霊「ロンドールの白い影」召喚', desc: '武器を掲げて決闘の礼を取る' },
+      { id: 'g20', name: '不死隊の儀礼', type: '誓約', req: 'ファランの城塞 ファランの老狼に祈る', desc: 'ファラン不死隊の敬礼' },
+      { id: 'g21', name: '暗月の誓約礼', type: '時限・排他', req: '薄暮の国のシーリス会話 (要:夢追い人の遺灰)', desc: '暗月の騎士の誓約礼（舌を捧げる前に取得必須）' },
+      { id: 'g22', name: '剣に誓って', type: 'NPC', req: 'ボス戦前等で白霊「黒い手のゴットヒルト」召喚', desc: '剣を捧げて忠誠を誓う' },
+      { id: 'g23', name: '祈り', type: 'NPC', req: '不死街でカリムのイリーナ救出時会話', desc: 'ひざまずいて敬虔に祈る' },
+      { id: 'g24', name: '隠密', type: 'NPC', req: 'オーベックから特定魔術4種購入後会話', desc: '音送り・速剣・隠密・白霧購入が条件' },
+      { id: 'g25', name: '休息', type: '初期', req: '篝火で初めて休息する', desc: '篝火の傍らに腰を下ろす' },
+      { id: 'g26', name: 'へたり込み', type: 'NPC', req: '火継ぎの祭祀場 脱走者ホークウッド会話', desc: '床に座り込んでうなだれる' },
+      { id: 'g27', name: 'パッチ座り', type: 'NPC', req: '祭祀場で不屈のパッチが座っている時に会話', desc: '独特のしゃがみ姿勢で座る' },
+      { id: 'g28', name: '土下座', type: 'NPC', req: 'パッチイベント進行時「許さない」等を選択', desc: '平伏して許しを請う' },
+      { id: 'g29', name: '乾杯', type: 'NPC', req: '不死街 ジークバルト共闘後に酒を飲む', desc: 'ジークの酒で乾杯する' },
+      { id: 'g30', name: '寝る', type: 'NPC', req: '乾杯後、ジークバルトが寝落ちするまで会話', desc: 'その場で眠りに落ちる' },
+      { id: 'g31', name: '丸くなる', type: 'NPC', req: '祭祀場でグレイラットにロレッタの骨を渡す', desc: '体を丸めてうずくまる' },
+      { id: 'g32', name: '大の字', type: '探索', req: '罪の都 篝火近くの遺体を調べる', desc: '手足を広げて大の字に倒れ込む' },
+      { id: 'g33', name: '古竜への道', type: '探索', req: '妖王オスロエス撃破後の最奥の遺体', desc: 'あぐらをかいて瞑想する（古竜の頂到達に必須）' }
+    ];
+
+    // --- 5. RINGS DATA (107 RINGS - 神攻略Wiki完全準拠) ---
+    const RINGS_DATA = [
+      // 【無印 (70種)】
+      { id: 'r1', name: '生命の指輪', ng: 'NG', loc: '副葬品 / 祭祀場の侍女 (1500ソウル)', desc: '最大HPを増やす (1.07倍)' },
+      { id: 'r2', name: '太陽の王女の指輪', ng: 'NG', loc: 'アノール・ロンド: 王女の間', desc: 'HPをゆっくりと回復する (+2/s)' },
+      { id: 'r3', name: 'エストの指輪', ng: 'NG', loc: '火継ぎの祭祀場: 塔の底の遺体', desc: 'エスト瓶のHP回復量を高める (1.2倍)' },
+      { id: 'r4', name: 'エストの灰指輪', ng: 'NG', loc: '無縁墓地: スタート地点左奥の遺体', desc: 'エストの灰瓶のFP回復量を高める (1.2倍)' },
+      { id: 'r5', name: '緑花の指輪', ng: 'NG', loc: '不死街: 悪魔広場奥の塔の最下層木箱裏', desc: 'スタミナ回復速度を上げる (+7/s)' },
+      { id: 'r6', name: 'ハベルの指輪', ng: 'NG', loc: 'ソウル錬成: はぐれデーモンのソウル', desc: '最大装備重量を増やす (1.15倍)' },
+      { id: 'r7', name: '寵愛の指輪', ng: 'NG', loc: '冷たい谷のイルシール: 貯水槽の巨大犬2体撃破', desc: 'HP、スタミナ、最大装備重量を増やす' },
+      { id: 'r8', name: '虜囚の鎖', ng: 'NG', loc: 'ソウル錬成: 英雄グンダのソウル', desc: '生命力・持久力・体力を高めるが被ダメージも増加' },
+      { id: 'r9', name: '鉄の加護の指輪', ng: 'NG', loc: '古竜の頂: 古の飛竜ボスエリア右奥', desc: '物理カット率を高める (被物理ダメージ-10%)' },
+      { id: 'r10', name: '魔力方石の指輪', ng: 'NG', loc: '妖王の庭: ボス前テラスの聖堂騎士ドロップ', desc: '魔力カット率を高める (被魔力ダメージ-13%)' },
+      { id: 'r11', name: '炎方石の指輪', ng: 'NG', loc: '不死街: 吊り下げられた遺体（籠持ち付近）', desc: '炎カット率を高める (被炎ダメージ-13%)' },
+      { id: 'r12', name: '雷方石の指輪', ng: 'NG', loc: '古竜の頂: 竜人の霊廟先、ハシゴ上の遺体', desc: '雷カット率を高める (被雷ダメージ-13%)' },
+      { id: 'r13', name: '闇方石の指輪', ng: 'NG', loc: '冷たい谷のイルシール: 巨人の広場手前の暗い小部屋', desc: '闇カット率を高める (被闇ダメージ-13%)' },
+      { id: 'r14', name: '斑方石の指輪', ng: 'NG', loc: '燻りの湖: 壊れるレンガ壁の中（大矢誘導）', desc: '炎・雷・魔力・闇カット率を少し高める (-5%)' },
+      { id: 'r15', name: '血咬みの指輪', ng: 'NG', loc: '不死街: ボロ橋近くの下水路の巨大ネズミドロップ', desc: '出血耐性を高める (+90)' },
+      { id: 'r16', name: '毒咬みの指輪', ng: 'NG', loc: '深みの聖堂: 結晶トカゲ近くの細い通路奥', desc: '毒耐性を高める (+90)' },
+      { id: 'r17', name: '呪い咬みの指輪', ng: 'NG', loc: '罪の都: 猛毒沼地帯奥の遺体', desc: '呪死耐性を高める (+150)' },
+      { id: 'r18', name: '人咬みの指輪', ng: 'NG', loc: '大書庫: 呪詛の書棚を抜けた先の遺体', desc: '出血・毒・冷気・呪死耐性を高める (+40)' },
+      { id: 'r19', name: '騎士の指輪', ng: 'NG', loc: 'ロスリック城: 太陽の祭壇前', desc: '筋力を高める (+5)' },
+      { id: 'r20', name: '狩人の指輪', ng: 'NG', loc: '大書庫: 羽騎士3体がいる屋上の塔頂上', desc: '技量を高める (+5)' },
+      { id: 'r21', name: '賢者の指輪', ng: 'NG', loc: '大書庫: レバーで動く本棚の隠し小部屋', desc: '理力を高める (+5)' },
+      { id: 'r22', name: '祭儀長の指輪', ng: 'NG', loc: '無縁墓地: 祭祀場の侍女 (10000ソウル)', desc: '信仰を高める (+5)' },
+      { id: 'r23', name: '貪欲な金の蛇の指輪', ng: 'NG', loc: '罪の都: ジークバルトが捕らわれている牢屋', desc: 'アイテム発見力を高める (+50)' },
+      { id: 'r24', name: '貪欲な銀の蛇の指輪', ng: 'NG', loc: '火継ぎの祭祀場: 屋根裏の隠し通路奥の宝箱', desc: '獲得ソウルを増やす (+10%)' },
+      { id: 'r25', name: '幼い竜印の指輪', ng: 'NG', loc: '魔術師初期 / オーベック魔術購入進呈', desc: '魔術の威力を高める (1.12倍)' },
+      { id: 'r26', name: '吠える竜印の指輪', ng: 'NG', loc: 'イルシールの地下牢: 獄吏の鍵で開く扉の先', desc: '魔術の威力を大きく高める (1.2倍)' },
+      { id: 'r27', name: '大沼の指輪', ng: 'NG', loc: '呪術師初期 / 生贄の道: 巨大蟹撃破', desc: '呪術の威力を高める (1.12倍)' },
+      { id: 'r28', name: '魔女の指輪', ng: 'NG', loc: 'カーサスの地下墓: 吊り橋下の通路奥', desc: '呪術の威力を大きく高める (1.2倍)' },
+      { id: 'r29', name: 'モーンの指輪', ng: 'NG', loc: '生贄の道: 道半ばの砦手前の橋から落ちた場所', desc: '奇跡の威力を高める (1.12倍)' },
+      { id: 'r30', name: '太陽の長子の指輪', ng: 'NG', loc: '冷たい谷のイルシール: サリヴァーン手前祭壇', desc: '奇跡の威力を大きく高める (1.2倍)' },
+      { id: 'r31', name: '宵闇の指冠', ng: 'NG', loc: 'イルシールの地下牢: 巨人がいる広場の小部屋', desc: '最大HPが減少するが使用FPを軽減する' },
+      { id: 'r32', name: '佇む竜印の指輪', ng: 'NG', loc: '生贄の道: 磔の森の巨大蟹撃破', desc: '魔法の効果時間を延ばす (1.3倍)' },
+      { id: 'r33', name: '古老の指輪', ng: 'NG', loc: '生贄の道: 磔の森から入れる水没した小部屋', desc: '魔法の詠唱時間を短縮する (技量+30相当)' },
+      { id: 'r34', name: '聖人の指輪', ng: 'NG', loc: 'カリムのイリーナから購入 (3000ソウル)', desc: '記憶スロットを1つ増やす' },
+      { id: 'r35', name: '深みの指輪', ng: 'NG', loc: '深みの聖堂: 清拭の小教会屋根裏を進んだ先', desc: '記憶スロットを1つ増やす' },
+      { id: 'r36', name: '暗月の指輪', ng: 'NG', loc: '誓約「暗月の剣」ランク1報酬 (約定の証10個)', desc: '記憶スロットを2つ増やす' },
+      { id: 'r37', name: '木目の指輪', ng: 'NG', loc: '祭祀場の侍女（東人の遺灰引き渡し後）', desc: '装備耐久度の低下を抑える' },
+      { id: 'r38', name: 'フリンの指輪', ng: 'NG', loc: '不死街: デーモン広場の建物の屋根上', desc: '総装備重量が軽いほど物理攻撃力を高める' },
+      { id: 'r39', name: 'ロイドの剣の指輪', ng: 'NG', loc: '深みの聖堂: 巨人のいる足場の遺体', desc: 'HPが最大のとき攻撃力を高める (1.1倍)' },
+      { id: 'r40', name: 'ロイドの盾の指輪', ng: 'NG', loc: '祭祀場の侍女（夢追い人の遺灰引き渡し後）', desc: 'HPが最大のとき全カット率を高める' },
+      { id: 'r41', name: '赤い涙石の指輪', ng: 'NG', loc: 'ロスリック城: 竜狩りの鎧手前のテラス', desc: 'HPピンチ時に攻撃力を高める (1.2倍)' },
+      { id: 'r42', name: '青い涙石の指輪', ng: 'NG', loc: '不死街: グレイラット救出時に入手', desc: 'HPピンチ時に全カット率を高める' },
+      { id: 'r43', name: '騎士狩りの指輪', ng: 'NG', loc: '燻りの湖: 騎士狩りゾリグ撃破', desc: '敵ガード時のスタミナ削り量を高める' },
+      { id: 'r44', name: '雀蜂の指輪', ng: 'NG', loc: '無縁墓地: 祭祀場右手の犬と墓守がいる奥', desc: '致命攻撃力を高める (1.3倍)' },
+      { id: 'r45', name: '獅子の指輪', ng: 'NG', loc: '冷たい谷のイルシール: サリヴァーン部屋2階宝箱', desc: '刺突カウンター攻撃力を高める (1.15倍)' },
+      { id: 'r46', name: '鷹の指輪', ng: 'NG', loc: '不死街: 巨人の塔の最上階（射程全回収後または殺害）', desc: '弓・ボウガンの射程距離を大きく延ばす' },
+      { id: 'r47', name: '狼の指輪', ng: 'NG', loc: '誓約「ファランの番人」ランク2 (狼血の剣草30個)', desc: '強靭度を高める (+12.5)' },
+      { id: 'r48', name: '幻肢の指輪', ng: 'NG', loc: '誓約「ロザリアの指びと」ランク1 (青ざめた舌10個)', desc: '離れた相手から術者の姿を完全に見えなくする' },
+      { id: 'r49', name: '眠竜の指輪', ng: 'NG', loc: 'ヴィンハイムのオーベック全魔術購入後会話', desc: '術者の発するあらゆる移動音を完全に消去する' },
+      { id: 'r50', name: '銀猫の指輪', ng: 'NG', loc: '薄暮の国のシーリスイベント報酬', desc: '即死以外の落下ダメージを完全に無効化する' },
+      { id: 'r51', name: '邪眼の指輪', ng: 'NG', loc: 'アストラのアンリイベント / 深みの聖堂水場', desc: '敵を倒したときにHPを回復する (+30)' },
+      { id: 'r52', name: '法王の右眼', ng: 'NG', loc: '冷たい谷のイルシール: 最初の橋のサリヴァーンの獣', desc: '攻撃が連続するほど攻撃力が高まる' },
+      { id: 'r53', name: '法王の左眼', ng: 'NG', loc: 'ソウル錬成: 冷たい谷のボルドのソウル', desc: '攻撃が連続するとHPが回復する' },
+      { id: 'r54', name: 'エルドリッチの赤石', ng: 'NG', loc: 'アノール・ロンド: 大扉前の深みの呪詛ドロップ', desc: '致命攻撃が決まったときHPを大幅回復する' },
+      { id: 'r55', name: 'エルドリッチの青石', ng: 'NG', loc: '深みの聖堂: 聖堂内の深みの呪詛ドロップ', desc: '致命攻撃が決まったときFPを回復する' },
+      { id: 'r56', name: '白い偽りの指輪', ng: 'NG', loc: 'ロンドールのユリアから購入 (5000ソウル)', desc: '霊体であっても実体（白霊）の姿に見せる' },
+      { id: 'r57', name: '暗い偽りの指輪', ng: 'NG', loc: 'ロンドールのユリアから購入 (5000ソウル)', desc: '亡者であっても人間の姿を保ち、霊体でもホスト姿に' },
+      { id: 'r58', name: '化生の指輪', ng: 'NG', loc: 'アノール・ロンド: 暗月の霊廟の宝箱', desc: '装備者の歩行・立ちモーションが異性のものになる' },
+      { id: 'r59', name: '髑髏の指輪', ng: 'NG', loc: 'クールラントのルドレス殺害または薪配置後', desc: '敵から狙われやすくなる' },
+      { id: 'r60', name: '災厄の指輪', ng: 'NG', loc: '古竜の頂: 竜人霊廟の祭壇前でジェスチャー古竜への道', desc: '受けるダメージが2倍になる' },
+      { id: 'r61', name: '犠牲の指輪', ng: 'NG', loc: '各地マップ拾得 / 祭祀場の侍女販売', desc: '死亡時にソウルを落とさずに済むが指輪は壊れる' },
+      { id: 'r62', name: '馬脚の指輪', ng: 'NG', loc: '不屈のパッチから購入 / 殺害ドロップ', desc: 'キックのスタミナ削り効果を高める' },
+      { id: 'r63', name: 'カーサスの乳輪', ng: 'NG', loc: 'カーサスの地下墓: 壺が並ぶ小部屋の遺体', desc: '技量を高め(+3)、ローリング時に姿が消える' },
+      { id: 'r64', name: 'カーサスの血輪', ng: 'NG', loc: 'カーサスの地下墓: 大玉骸骨付近の通路奥', desc: 'ローリングの無敵時間を延ばすが被ダメージも増加' },
+      { id: 'r65', name: '竜鱗の指輪', ng: 'NG', loc: '妖王の庭: リフトショートカット途中の遺体', desc: '背後からの攻撃による被ダメージを軽減する' },
+
+      // 【2周目 (NG+追加：全21種)】
+      { id: 'r66', name: '生命の指輪+1', ng: 'NG+', loc: '不死街: ジークバルト昇降機途中バルコニー', desc: '最大HPを増やす (1.08倍)' },
+      { id: 'r67', name: '緑花の指輪+1', ng: 'NG+', loc: '冷たい谷のイルシール: 太陽の長子の指輪の裏手', desc: 'スタミナ回復速度を上げる (+8/s)' },
+      { id: 'r68', name: 'ハベルの指輪+1', ng: 'NG+', loc: '古竜の頂: 篝火「大鐘楼」先、建物裏手の遺体', desc: '最大装備重量を増やす (1.17倍)' },
+      { id: 'r69', name: '寵愛の指輪+1', ng: 'NG+', loc: '冷たい谷のイルシール: サリヴァーン部屋2階柱裏', desc: 'HP、スタミナ、最大装備重量を増やす' },
+      { id: 'r70', name: '鉄の加護の指輪+1', ng: 'NG+', loc: '無縁墓地: 祭祀場裏手（塔の鍵の建物右側）', desc: '物理カット率を高める (被物理ダメージ-13%)' },
+      { id: 'r71', name: '魔力方石の指輪+1', ng: 'NG+', loc: 'ファランの城塞: 毒沼のバジリスク密集エリア奥', desc: '魔力カット率を高める (被魔力ダメージ-17%)' },
+      { id: 'r72', name: '炎方石の指輪+1', ng: 'NG+', loc: '罪の都: 猛毒沼の建物2階から飛び降りた段差', desc: '炎カット率を高める (被炎ダメージ-17%)' },
+      { id: 'r73', name: '雷方石の指輪+1', ng: 'NG+', loc: 'カーサスの地下墓: 大玉骸骨階段を降りた右手通路', desc: '雷カット率を高める (被雷ダメージ-17%)' },
+      { id: 'r74', name: '闇方石の指輪+1', ng: 'NG+', loc: 'ロスリック城: 白い竜がいる場所へ飛び降りたテラス', desc: '闇カット率を高める (被闇ダメージ-17%)' },
+      { id: 'r75', name: '斑方石の指輪+1', ng: 'NG+', loc: '灰の墓所: 大食らいの結晶トカゲのそば', desc: '全属性カット率を少し高める (-7%)' },
+      { id: 'r76', name: '血咬みの指輪+1', ng: 'NG+', loc: '燻りの湖: 三連大矢マシンの横側', desc: '出血耐性を高める (+140)' },
+      { id: 'r77', name: '毒咬みの指輪+1', ng: 'NG+', loc: '不死街: 大矢が飛んでくる井戸の裏手', desc: '毒耐性を高める (+140)' },
+      { id: 'r78', name: '人咬みの指輪+1', ng: 'NG+', loc: 'ロスリックの高壁: 変異亡者屋根からジャンプした先', desc: '全状態異常耐性を高める (+60)' },
+      { id: 'r79', name: '木目の指輪+1', ng: 'NG+', loc: '冷たい谷のイルシール: 下水道奥の廃屋の外側', desc: '装備耐久度の低下を大きく抑える' },
+      { id: 'r80', name: '邪眼の指輪+1', ng: 'NG+', loc: '深みの聖堂: 祝福の貴石がある巨人の足元裏', desc: '敵撃破時にHPを回復する (+33)' },
+      { id: 'r81', name: '佇む竜印の指輪+1', ng: 'NG+', loc: '生贄の道: 磔の森の巨大蟹近くの木の根元', desc: '魔法の効果時間を延ばす (1.35倍)' },
+      { id: 'r82', name: '古老の指輪+1', ng: 'NG+', loc: '大書庫: 羽騎士がいる建物から梁へ降りた一段下', desc: '魔法の詠唱時間を短縮する (技量+35相当)' },
+      { id: 'r83', name: '狼の指輪+1', ng: 'NG+', loc: 'ファランの城塞: 篝火「城塞外縁」近くの建物外壁', desc: '強靭度を高める (+17.5)' },
+      { id: 'r84', name: '貪欲な金の蛇の指輪+1', ng: 'NG+', loc: 'イルシール: 巨人広場手前、サリヴァーン部屋屋根', desc: 'アイテム発見力を高める (+75)' },
+      { id: 'r85', name: '貪欲な銀の蛇の指輪+1', ng: 'NG+', loc: 'イルシール: ジークバルトのいる暖炉部屋の外側段差', desc: '獲得ソウルを増やす (+20%)' },
+      { id: 'r86', name: '生命の指輪+2', ng: 'NG+', loc: 'ロスリック城: 城門右手ハシゴを登り外へ出た段差', desc: '最大HPを増やす (1.09倍)' },
+
+      // 【3周目 (NG++追加：全16種)】
+      { id: 'r87', name: '生命の指輪+3', ng: 'NG++', loc: '無縁墓地: 祭祀場内のロスリック玉座の裏手', desc: '最大HPを増やす (1.10倍)' },
+      { id: 'r88', name: '緑花の指輪+2', ng: 'NG++', loc: '生贄の道: 毒霧鴉人がいる崖下の足場', desc: 'スタミナ回復速度を上げる (+9/s)' },
+      { id: 'r89', name: 'ハベルの指輪+2', ng: 'NG++', loc: 'アノール・ロンド: 虜囚の塔から梁を降りた場所', desc: '最大装備重量を増やす (1.18倍)' },
+      { id: 'r90', name: '寵愛の指輪+2', ng: 'NG++', loc: '深みの聖堂: 清拭小教会天井裏手前の左奥通路', desc: 'HP、スタミナ、最大装備重量を増やす' },
+      { id: 'r91', name: '鉄の加護の指輪+2', ng: 'NG++', loc: 'カーサスの地下墓: 入口すぐの橋の途中から見える柱上', desc: '物理カット率を高める (被物理ダメージ-15%)' },
+      { id: 'r92', name: '魔力方石の指輪+2', ng: 'NG++', loc: '罪の都: 篝火下から飛び降りた階段下の陰', desc: '魔力カット率を高める (被魔力ダメージ-20%)' },
+      { id: 'r93', name: '炎方石の指輪+2', ng: 'NG++', loc: '燻りの湖: 老王の前室通路の幻の壁奥（黒騎士斧部屋）', desc: '炎カット率を高める (被炎ダメージ-20%)' },
+      { id: 'r94', name: '雷方石の指輪+2', ng: 'NG++', loc: 'ロスリック城: 竜狩りの鎧前バルコニーから降りた屋根', desc: '雷カット率を高める (被雷ダメージ-20%)' },
+      { id: 'r95', name: '闇方石の指輪+2', ng: 'NG++', loc: 'ファランの城塞: 城塞跡からグルー橋を渡った建物裏', desc: '闇カット率を高める (被闇ダメージ-20%)' },
+      { id: 'r96', name: '斑方石の指輪+2', ng: 'NG++', loc: '燻りの湖: 溶岩地帯手前の通路奥', desc: '全属性カット率を少し高める (-9%)' },
+      { id: 'r97', name: '木目の指輪+2', ng: 'NG++', loc: '冷たい谷のイルシール: 街外れの廃屋裏の階段下', desc: '装備耐久度の低下を極限まで抑える' },
+      { id: 'r98', name: '邪眼の指輪+2', ng: 'NG++', loc: 'ロスリックの高壁: 牢の鍵があった部屋の隅', desc: '敵撃破時にHPを回復する (+35)' },
+      { id: 'r99', name: '佇む竜印の指輪+2', ng: 'NG++', loc: '大書庫: 羽騎士3体がいる建物の2階階段窪み', desc: '魔法の効果時間を延ばす (1.4倍)' },
+      { id: 'r100', name: '古老の指輪+2', ng: 'NG++', loc: '妖王の庭: リフト昇降路途中の足場左側', desc: '魔法の詠唱時間を短縮する (技量+40相当)' },
+      { id: 'r101', name: '狼の指輪+2', ng: 'NG++', loc: 'カーサスの地下墓: ウォルニール手前の小部屋遺体', desc: '強靭度を高める (+20)' },
+      { id: 'r102', name: '貪欲な金の蛇の指輪+2', ng: 'NG++', loc: '古竜の頂: 無名の王撃破後の階段右手', desc: 'アイテム発見力を高める (+100)' },
+      { id: 'r103', name: '貪欲な銀の蛇の指輪+2', ng: 'NG++', loc: '不死街: デーモン広場屋根からフリン側へ降りた段差', desc: '獲得ソウルを増やす (+30%)' }
+    ];
+
+    // --- COVENANTS DATA (神攻略Wiki準拠) ---
+    const COVENANTS_DATA = [
+      { id: 'cov1', name: '暗月の剣 / 青の守護者', item: '約定の証 (耳)', target: 30, mapPickups: 6, dropEnemy: '銀騎士 (アノール・ロンド)', reward: '暗月の指輪 (10個) / 奇跡「暗月の光の剣」(30個)' },
+      { id: 'cov2', name: '太陽の戦士', item: '太陽のメダル', target: 30, mapPickups: 3, dropEnemy: 'ロスリック騎士 (城入口)', reward: '奇跡「固い誓い」(10個) / 奇跡「雷の大槍」(30個)' },
+      { id: 'cov3', name: 'ファランの番人', item: '狼血の剣草', target: 30, mapPickups: 3, dropEnemy: 'グルー (ファランの城塞)', reward: '狼の指輪 (30個 - トロフィー必須)' },
+      { id: 'cov4', name: 'ロザリアの指びと', item: '青ざめた舌', target: 10, mapPickups: 9, dropEnemy: 'ダークレイス (城塞外縁手前)', reward: '幻肢の指輪 (10個)' },
+      { id: 'cov5', name: '神喰らいの守り手', item: '人間のドロドロ', target: 10, mapPickups: 3, dropEnemy: '主教 (サリヴァーン部屋後)', reward: '魔術「強い深みのソウル」(10個)' },
+      { id: 'cov6', name: '積む者', item: '脊椎の骨', target: 30, mapPickups: 0, dropEnemy: 'カーサスの骸骨剣士 (地下墓)', reward: '呪術「ぬくもりの火」(30個)' }
+    ];
+
+    // --- WALKTHROUGH DATA (神攻略Wiki準拠) ---
+    const WALKTHROUGH_DATA = [
+      { id: 'wt1', ng: 'NG', step: '【灰の墓所】灰の審判者グンダ撃破後、火継ぎの祭祀場へ。', location: '灰の墓所' },
+      { id: 'wt2', ng: 'NG', step: '【祭祀場】ヨエルを従者にする。地下墓到達前に「本当の力を引き出す」を5回行いユリアを出現させる。', location: 'ロスリックの高壁' },
+      { id: 'wt3', ng: 'NG', step: '【不死街】ジークバルト共闘（乾杯/寝る）、ロレッタの骨（丸くなる）、コルニクス救出（歓迎）。', location: '不死街' },
+      { id: 'wt4', ng: 'NG', step: '【生贄の道】オーベックに魔術書を渡し祭祀場へ勧誘（理力10以上必須）。', location: '生贄の道' },
+      { id: 'wt5', ng: 'NG', step: '【深みの聖堂】シーリスと会話。ロザリア誓約加入・舌捧げは後回し（絶交防止）。', location: '深みの聖堂' },
+      { id: 'wt6', ng: 'NG', step: '【冷たい谷のイルシール】大橋でシーリスの協力サインに応じ「銀猫の指輪」獲得。', location: '冷たい谷のイルシール' },
+      { id: 'wt7', ng: 'NG+', step: '【2周目】+1指輪（全21種）の回収漏れがないか指輪DBで確認しながら進める。', location: '全エリア' },
+      { id: 'wt8', ng: 'NG+', step: '【2周目】ロザリアに舌を捧げ、ファランの城塞でヘイゼルを召喚して「丁寧な一礼」回収。', location: 'ファランの城塞' },
+      { id: 'wt9', ng: 'NG++', step: '【3周目】+2指輪（全15種）および無縁墓地の「生命の指輪+3」を回収。', location: '全エリア' },
+      { id: 'wt10', ng: 'NG++', step: '【3周目】ユリアの契りの儀式を完遂し「火の奪還」エンディングへ。', location: 'アノール・ロンド' }
+    ];
+
+    // --- STATE MANAGEMENT ---
+    let appState = {
+      acquiredRings: {},
+      acquiredSorceries: {},
+      acquiredPyros: {},
+      acquiredMiracles: {},
+      acquiredGestures: {},
+      covenantCounts: { cov1: 0, cov2: 0, cov3: 0, cov4: 0, cov5: 0, cov6: 0 },
+      completedWalkthrough: {}
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem('ds3_achievement_tracker_full_state');
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to load state", e);
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('ds3_achievement_tracker_full_state', JSON.stringify(appState));
+      updateMasterCounters();
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-amber-600', 'text-stone-900', 'font-bold');
+        btn.classList.add('text-stone-300', 'hover:bg-stone-700');
+      });
+
+      const activeTabContent = document.getElementById(`tab-${tabId}`);
+      if (activeTabContent) {
+        activeTabContent.classList.remove('hidden');
+      }
+
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-amber-600', 'text-stone-900', 'font-bold');
+        activeBtn.classList.remove('text-stone-300', 'hover:bg-stone-700');
+      }
+    }
+
+    // --- CALCULATOR ---
+    function updateCalculator() {
+      const luck = parseInt(document.getElementById('luck-input').value, 10);
+      document.getElementById('luck-val').innerText = luck;
+
+      const avarice = document.getElementById('symbol-avarice').checked ? 100 : 0;
+      const coin = document.getElementById('rusted-coin').checked ? 50 : 0;
+      const goldRing = parseInt(document.getElementById('gold-serpent').value, 10);
+      const rapier = parseInt(document.getElementById('crystal-rapier').value, 10);
+
+      const totalDiscovery = 100 + (luck - 10) + avarice + coin + goldRing + rapier;
+      document.getElementById('calc-discovery').innerText = totalDiscovery;
+
+      const baseDropRate = 0.01;
+      const calculatedRate = baseDropRate * (totalDiscovery / 100);
+      document.getElementById('calc-drop-rate').innerText = (calculatedRate * 100).toFixed(2) + '%';
+
+      const killsNeeded = Math.round(30 / calculatedRate);
+      document.getElementById('calc-kills-needed').innerText = `約 ${killsNeeded.toLocaleString()} 体`;
+
+      const secondsPerKill = 40;
+      const hoursNeeded = (killsNeeded * secondsPerKill) / 3600;
+      document.getElementById('calc-time-needed').innerText = `約 ${hoursNeeded.toFixed(1)} 時間`;
+    }
+
+    // --- SORCERIES TAB ---
+    let currentSorcFilter = 'all';
+    function filterSorceries(filter, btn) {
+      currentSorcFilter = filter;
+      document.querySelectorAll('.sorc-filter-btn').forEach(b => {
+        b.classList.remove('bg-stone-800', 'text-stone-100');
+        b.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      if (btn) {
+        btn.classList.add('bg-stone-800', 'text-stone-100');
+        btn.classList.remove('bg-stone-200', 'text-stone-700');
+      }
+      renderSorceries();
+    }
+
+    function renderSorceries() {
+      const search = document.getElementById('sorceries-search').value.toLowerCase();
+      const grid = document.getElementById('sorceries-grid');
+      grid.innerHTML = '';
+
+      const filtered = SORCERIES_DATA.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search) || s.teacher.toLowerCase().includes(search) || s.req.toLowerCase().includes(search);
+        const isAcquired = !!appState.acquiredSorceries[s.id];
+
+        if (currentSorcFilter === 'orbeck') return matchesSearch && s.teacher.includes('オーベック');
+        if (currentSorcFilter === 'transmute') return matchesSearch && (s.teacher.includes('ソウル錬成') || s.teacher.includes('誓約'));
+        if (currentSorcFilter === 'unacquired') return matchesSearch && !isAcquired;
+        return matchesSearch;
+      });
+
+      filtered.forEach(s => {
+        const isChecked = !!appState.acquiredSorceries[s.id];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all ${isChecked ? 'bg-sky-50/70 border-sky-300' : 'bg-white border-stone-200'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">魔術</span>
+              <h4 class="font-bold text-stone-900 text-sm mt-1">${s.name}</h4>
+            </div>
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSorcery('${s.id}')" class="w-5 h-5 accent-sky-600 rounded cursor-pointer mt-1">
+          </div>
+          <p class="text-xs text-stone-500 mt-2">${s.desc}</p>
+          <div class="text-[11px] text-sky-900 font-medium mt-2 bg-sky-50 p-2 rounded border border-sky-100">
+            <div>👤 習得先: ${s.teacher}</div>
+            <div class="mt-0.5 text-stone-600">📜 条件: ${s.req}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleSorcery(id) {
+      appState.acquiredSorceries[id] = !appState.acquiredSorceries[id];
+      saveState();
+      renderSorceries();
+    }
+
+    // --- PYROMANCIES TAB ---
+    let currentPyroFilter = 'all';
+    function filterPyromancies(filter, btn) {
+      currentPyroFilter = filter;
+      document.querySelectorAll('.pyro-filter-btn').forEach(b => {
+        b.classList.remove('bg-stone-800', 'text-stone-100');
+        b.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      if (btn) {
+        btn.classList.add('bg-stone-800', 'text-stone-100');
+        btn.classList.remove('bg-stone-200', 'text-stone-700');
+      }
+      renderPyromancies();
+    }
+
+    function renderPyromancies() {
+      const search = document.getElementById('pyro-search').value.toLowerCase();
+      const grid = document.getElementById('pyro-grid');
+      grid.innerHTML = '';
+
+      const filtered = PYROMANCIES_DATA.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(search) || p.teacher.toLowerCase().includes(search) || p.req.toLowerCase().includes(search);
+        const isAcquired = !!appState.acquiredPyros[p.id];
+
+        if (currentPyroFilter === 'cornyx') return matchesSearch && p.teacher.includes('コルニクス');
+        if (currentPyroFilter === 'karla') return matchesSearch && p.teacher.includes('カルラ');
+        if (currentPyroFilter === 'unacquired') return matchesSearch && !isAcquired;
+        return matchesSearch;
+      });
+
+      filtered.forEach(p => {
+        const isChecked = !!appState.acquiredPyros[p.id];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all ${isChecked ? 'bg-orange-50/70 border-orange-300' : 'bg-white border-stone-200'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-100 text-orange-800">呪術</span>
+              <h4 class="font-bold text-stone-900 text-sm mt-1">${p.name}</h4>
+            </div>
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePyromancy('${p.id}')" class="w-5 h-5 accent-orange-600 rounded cursor-pointer mt-1">
+          </div>
+          <p class="text-xs text-stone-500 mt-2">${p.desc}</p>
+          <div class="text-[11px] text-orange-900 font-medium mt-2 bg-orange-50 p-2 rounded border border-orange-100">
+            <div>🔥 習得先: ${p.teacher}</div>
+            <div class="mt-0.5 text-stone-600">📜 条件: ${p.req}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function togglePyromancy(id) {
+      appState.acquiredPyros[id] = !appState.acquiredPyros[id];
+      saveState();
+      renderPyromancies();
+    }
+
+    // --- MIRACLES TAB ---
+    let currentMiracleFilter = 'all';
+    function filterMiracles(filter, btn) {
+      currentMiracleFilter = filter;
+      document.querySelectorAll('.miracle-filter-btn').forEach(b => {
+        b.classList.remove('bg-stone-800', 'text-stone-100');
+        b.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      if (btn) {
+        btn.classList.add('bg-stone-800', 'text-stone-100');
+        btn.classList.remove('bg-stone-200', 'text-stone-700');
+      }
+      renderMiracles();
+    }
+
+    function renderMiracles() {
+      const search = document.getElementById('miracles-search').value.toLowerCase();
+      const grid = document.getElementById('miracles-grid');
+      grid.innerHTML = '';
+
+      const filtered = MIRACLES_DATA.filter(m => {
+        const matchesSearch = m.name.toLowerCase().includes(search) || m.teacher.toLowerCase().includes(search) || m.req.toLowerCase().includes(search);
+        const isAcquired = !!appState.acquiredMiracles[m.id];
+
+        if (currentMiracleFilter === 'irina') return matchesSearch && m.teacher.includes('イリーナ');
+        if (currentMiracleFilter === 'covenant') return matchesSearch && m.teacher.includes('誓約');
+        if (currentMiracleFilter === 'unacquired') return matchesSearch && !isAcquired;
+        return matchesSearch;
+      });
+
+      filtered.forEach(m => {
+        const isChecked = !!appState.acquiredMiracles[m.id];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all ${isChecked ? 'bg-yellow-50/70 border-yellow-300' : 'bg-white border-stone-200'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">奇跡</span>
+              <h4 class="font-bold text-stone-900 text-sm mt-1">${m.name}</h4>
+            </div>
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMiracle('${m.id}')" class="w-5 h-5 accent-yellow-600 rounded cursor-pointer mt-1">
+          </div>
+          <p class="text-xs text-stone-500 mt-2">${m.desc}</p>
+          <div class="text-[11px] text-yellow-900 font-medium mt-2 bg-yellow-50 p-2 rounded border border-yellow-100">
+            <div>⚡ 習得先: ${m.teacher}</div>
+            <div class="mt-0.5 text-stone-600">📜 条件: ${m.req}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleMiracle(id) {
+      appState.acquiredMiracles[id] = !appState.acquiredMiracles[id];
+      saveState();
+      renderMiracles();
+    }
+
+    // --- GESTURES TAB ---
+    let currentGestureFilter = 'all';
+    function filterGestures(filter, btn) {
+      currentGestureFilter = filter;
+      document.querySelectorAll('.gesture-filter-btn').forEach(b => {
+        b.classList.remove('bg-stone-800', 'text-stone-100');
+        b.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      if (btn) {
+        btn.classList.add('bg-stone-800', 'text-stone-100');
+        btn.classList.remove('bg-stone-200', 'text-stone-700');
+      }
+      renderGestures();
+    }
+
+    function renderGestures() {
+      const search = document.getElementById('gestures-search').value.toLowerCase();
+      const grid = document.getElementById('gestures-grid');
+      grid.innerHTML = '';
+
+      const filtered = GESTURES_DATA.filter(g => {
+        const matchesSearch = g.name.toLowerCase().includes(search) || g.req.toLowerCase().includes(search) || g.desc.toLowerCase().includes(search);
+        const isAcquired = !!appState.acquiredGestures[g.id];
+
+        if (currentGestureFilter === 'npc') return matchesSearch && g.type === 'NPC';
+        if (currentGestureFilter === 'missable') return matchesSearch && g.type.includes('時限');
+        if (currentGestureFilter === 'unacquired') return matchesSearch && !isAcquired;
+        return matchesSearch;
+      });
+
+      filtered.forEach(g => {
+        const isChecked = !!appState.acquiredGestures[g.id];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all ${isChecked ? 'bg-emerald-50/70 border-emerald-300' : 'bg-white border-stone-200'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded ${g.type.includes('時限') ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}">${g.type}</span>
+              <h4 class="font-bold text-stone-900 text-sm mt-1">${g.name}</h4>
+            </div>
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleGesture('${g.id}')" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer mt-1">
+          </div>
+          <p class="text-xs text-stone-500 mt-2">${g.desc}</p>
+          <div class="text-[11px] text-emerald-900 font-medium mt-2 bg-emerald-50 p-2 rounded border border-emerald-100">
+            🙋‍♂️ 習得条件: ${g.req}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleGesture(id) {
+      appState.acquiredGestures[id] = !appState.acquiredGestures[id];
+      saveState();
+      renderGestures();
+    }
+
+    // --- RINGS TAB ---
+    let currentRingFilter = 'all';
+    function filterRings(filter, btnElement) {
+      currentRingFilter = filter;
+      document.querySelectorAll('.ring-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-stone-800', 'text-stone-100');
+        btn.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      if (btnElement) {
+        btnElement.classList.add('bg-stone-800', 'text-stone-100');
+        btnElement.classList.remove('bg-stone-200', 'text-stone-700');
+      }
+      renderRings();
+    }
+
+    function renderRings() {
+      const search = document.getElementById('ring-search').value.toLowerCase();
+      const grid = document.getElementById('ring-grid');
+      grid.innerHTML = '';
+
+      const filtered = RINGS_DATA.filter(r => {
+        const matchesSearch = r.name.toLowerCase().includes(search) || r.loc.toLowerCase().includes(search);
+        const isAcquired = !!appState.acquiredRings[r.id];
+
+        if (currentRingFilter === 'NG') return matchesSearch && r.ng === 'NG';
+        if (currentRingFilter === 'NG+') return matchesSearch && r.ng === 'NG+';
+        if (currentRingFilter === 'NG++') return matchesSearch && (r.ng === 'NG++' || r.ng === 'NG+++');
+        if (currentRingFilter === 'unacquired') return matchesSearch && !isAcquired;
+        return matchesSearch;
+      });
+
+      filtered.forEach(r => {
+        const isChecked = !!appState.acquiredRings[r.id];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all ${isChecked ? 'bg-amber-50/60 border-amber-300' : 'bg-white border-stone-200'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded ${r.ng === 'NG' ? 'bg-stone-200 text-stone-800' : r.ng === 'NG+' ? 'bg-sky-100 text-sky-800' : 'bg-amber-100 text-amber-900'}">${r.ng}</span>
+              <h4 class="font-bold text-stone-900 text-sm mt-1">${r.name}</h4>
+            </div>
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleRing('${r.id}')" class="w-5 h-5 accent-amber-600 rounded cursor-pointer mt-1">
+          </div>
+          <p class="text-xs text-stone-500 mt-2">${r.desc}</p>
+          <div class="text-[11px] text-amber-800 font-medium mt-2 bg-amber-50/80 p-2 rounded border border-amber-100">📍 ${r.loc}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleRing(id) {
+      appState.acquiredRings[id] = !appState.acquiredRings[id];
+      saveState();
+      renderRings();
+    }
+
+    // --- COVENANT TAB ---
+    let covenantChartInstance = null;
+    function renderCovenants() {
+      const tbody = document.getElementById('covenant-table-body');
+      tbody.innerHTML = '';
+
+      COVENANTS_DATA.forEach(cov => {
+        const currentVal = appState.covenantCounts[cov.id] || 0;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-stone-50 transition-colors";
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-stone-900">${cov.name}</td>
+          <td class="p-3 font-medium text-amber-700">${cov.item}</td>
+          <td class="p-3 font-bold">${cov.target}</td>
+          <td class="p-3 text-stone-500">${cov.mapPickups} (3周計)</td>
+          <td class="p-3">
+            <input type="number" min="0" max="30" value="${currentVal}" onchange="updateCovenantCount('${cov.id}', this.value)" class="w-16 p-1 border rounded text-xs text-center font-bold bg-stone-50 focus:ring-1 focus:ring-amber-500">
+          </td>
+          <td class="p-3 text-stone-600">${cov.dropEnemy}</td>
+          <td class="p-3 text-stone-800 font-semibold">${cov.reward}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      renderCovenantChart();
+    }
+
+    function updateCovenantCount(id, val) {
+      appState.covenantCounts[id] = parseInt(val, 10) || 0;
+      saveState();
+      renderCovenantChart();
+    }
+
+    function renderCovenantChart() {
+      const ctx = document.getElementById('covenantChart').getContext('2d');
+      if (covenantChartInstance) {
+        covenantChartInstance.destroy();
+      }
+
+      const labels = COVENANTS_DATA.map(c => c.name.split('/')[0]);
+      const targets = COVENANTS_DATA.map(c => c.target);
+      const currentArr = COVENANTS_DATA.map(c => appState.covenantCounts[c.id] || 0);
+      const mapPickupsArr = COVENANTS_DATA.map(c => c.mapPickups);
+
+      covenantChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: '現在所持数', data: currentArr, backgroundColor: '#d97706' },
+            { label: '3周マップ拾得数', data: mapPickupsArr, backgroundColor: '#38bdf8' },
+            { label: '目標数', data: targets, backgroundColor: '#e2e8f0' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 35 }
+          },
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+
+    // --- WALKTHROUGH TAB ---
+    let currentWalkthroughFilter = 'all';
+    function filterWalkthrough(filter) {
+      currentWalkthroughFilter = filter;
+      document.querySelectorAll('.wt-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-stone-800', 'text-stone-100');
+        btn.classList.add('bg-stone-200', 'text-stone-700');
+      });
+      event.target.classList.add('bg-stone-800', 'text-stone-100');
+      renderWalkthrough();
+    }
+
+    function renderWalkthrough() {
+      const container = document.getElementById('walkthrough-list-container');
+      container.innerHTML = '';
+
+      const filtered = WALKTHROUGH_DATA.filter(w => {
+        if (currentWalkthroughFilter === 'all') return true;
+        return w.ng === currentWalkthroughFilter;
+      });
+
+      filtered.forEach(w => {
+        const isChecked = !!appState.completedWalkthrough[w.id];
+        const item = document.createElement('div');
+        item.className = `p-4 rounded-xl border flex items-center justify-between gap-4 transition-all ${isChecked ? 'bg-stone-100 border-stone-300 opacity-60' : 'bg-white border-stone-200 shadow-sm'}`;
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold px-2 py-1 rounded bg-stone-200 text-stone-800">${w.ng}</span>
+            <div>
+              <div class="text-xs font-bold text-amber-800">${w.location}</div>
+              <div class="text-xs text-stone-800 mt-0.5 ${isChecked ? 'line-through' : ''}">${w.step}</div>
+            </div>
+          </div>
+          <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleWalkthrough('${w.id}')" class="w-5 h-5 accent-amber-600 rounded cursor-pointer">
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function toggleWalkthrough(id) {
+      appState.completedWalkthrough[id] = !appState.completedWalkthrough[id];
+      saveState();
+      renderWalkthrough();
+    }
+
+    // --- MASTER COUNTERS ---
+    function updateMasterCounters() {
+      const sorcCount = Object.values(appState.acquiredSorceries).filter(Boolean).length;
+      const pyroCount = Object.values(appState.acquiredPyros).filter(Boolean).length;
+      const miracleCount = Object.values(appState.acquiredMiracles).filter(Boolean).length;
+      const gestureCount = Object.values(appState.acquiredGestures).filter(Boolean).length;
+      const ringCount = Object.values(appState.acquiredRings).filter(Boolean).length;
+
+      document.getElementById('sorcery-count').innerText = `${sorcCount} / 34`;
+      document.getElementById('pyro-count').innerText = `${pyroCount} / 27`;
+      document.getElementById('miracle-count').innerText = `${miracleCount} / 35`;
+      document.getElementById('gesture-count').innerText = `${gestureCount} / 33`;
+      document.getElementById('ring-count').innerText = `${ringCount} / 107`;
+
+      if (document.getElementById('sorceries-tab-count')) document.getElementById('sorceries-tab-count').innerText = `${sorcCount} / 34`;
+      if (document.getElementById('pyro-tab-count')) document.getElementById('pyro-tab-count').innerText = `${pyroCount} / 27`;
+      if (document.getElementById('miracles-tab-count')) document.getElementById('miracles-tab-count').innerText = `${miracleCount} / 35`;
+      if (document.getElementById('gestures-tab-count')) document.getElementById('gestures-tab-count').innerText = `${gestureCount} / 33`;
+      if (document.getElementById('ring-tab-count')) document.getElementById('ring-tab-count').innerText = `${ringCount} / 107`;
+
+      const totalItems = 34 + 27 + 35 + 33 + 107; // 全236要素
+      const currentTotal = sorcCount + pyroCount + miracleCount + gestureCount + ringCount;
+      const percentage = Math.round((currentTotal / totalItems) * 100);
+
+      document.getElementById('total-progress-percent').innerText = `${percentage}%`;
+      document.getElementById('master-progress-bar').style.width = `${percentage}%`;
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      updateCalculator();
+      renderSorceries();
+      renderPyromancies();
+      renderMiracles();
+      renderGestures();
+      renderRings();
+      renderCovenants();
+      renderWalkthrough();
+      updateMasterCounters();
+    });
+  </script>
+</body>
+</html>
